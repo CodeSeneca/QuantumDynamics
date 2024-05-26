@@ -1,6 +1,6 @@
 """Definition of simulation related functions"""
 
-from numpy import sqrt, zeros, conjugate
+import numpy as np
 
 def calc_norm(psi:'complex ndarray', dx:float) -> float:
   """Calculate the norm of given gaussian wave packet
@@ -10,17 +10,15 @@ def calc_norm(psi:'complex ndarray', dx:float) -> float:
   return norm       norm of gaussian wave packet -> float
   """
 
-  # Create an array with the complex conjugate elements of psi
-  psi_conj = conjugate(psi)
-  norm = sum(psi*psi_conj*dx)
-  
+  psi_2 = np.abs(psi)**2
+  norm = np.sum(psi_2*dx)
   # This is the vectorized version of:
 
   #norm = 0.0
   #for i in range(len(psi)):
     #norm += (psi[i].real**2 + psi[i].imag**2) * dx
 
-  norm = 1/sqrt(norm)
+  norm = 1/np.sqrt(norm)
 
   return norm
 
@@ -36,7 +34,7 @@ def calc_b(V:'ndarray', n:int, dx:float, dt:float, mass:float) -> 'ndarray':
                     -> complex elements
   """
 
-  b = zeros(n, dtype=complex)
+  b = np.zeros(n, dtype=complex)
   b = mass*dx**2 * (2j/dt - V) - 1
 
   return 2*b
@@ -87,8 +85,8 @@ def solve_les_thomas(a:'real', b:'complex', c:'real', d:'complex', x) -> None:
   n = len(d)  # Number of equations in LES
 
   ##### STEP 1: Transform vector c to c_trans and vector d to d_trans
-  c_trans = zeros(n-1, dtype=complex)
-  d_trans = zeros(n, dtype=complex)
+  c_trans = np.zeros(n-1, dtype=complex)
+  d_trans = np.zeros(n, dtype=complex)
   c_trans[0] = c[0]/b[0]
   d_trans[0] = d[0]/b[0]
 

@@ -1,7 +1,7 @@
 Sample input file for a HARMONIC POTENTIAL
 
 dt = 0.005
-nsteps = 1000
+nsteps = 100
 dx = 0.01
 ngridpoints = 1000
 x0 = 0

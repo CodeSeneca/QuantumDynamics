@@ -4,46 +4,16 @@
 
 import time
 import sys
-import re
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from pkg.functions import harmonic_potential, gaussian
 from pkg.simulation import calc_norm, calc_b, calc_d, solve_les_thomas
+from pkg.input import read_input
 
 ###############################################################################
 ############################## Input parameters ###############################
 ###############################################################################
-
-"""Definition of simulation parameters
-Atomic units (a.u.) will be used in the following
-
-dt                      time step
-nsteps                  number of time steps (int)
-                        -> [dt, nsteps*dt]
-dx                      grid spacing (float)
-ngridpoints             total number of grid points (int)
-x0                      start location of initial Gaussain
-p0                      start momentum of initial Gaussian
-sigma                   standard deviation of initial Gaussain
-k                       harmonic force constant
-mass                    particle mass
-output_mode             extent of output written
-output_step             write out energy for only each nth time step
-"""
-
-# Default values
-dt = 0.005
-nsteps = 100
-dx = 0.01
-ngridpoints = 1000
-x0 = 0.0
-p0 = 1.0
-sigma = 1.0
-k = 5.0
-mass = 1.0
-output_mode = 1
-output_step = 10
 
 # Get input file name via command line argument
 argc = len(sys.argv)
@@ -51,43 +21,11 @@ if argc != 2:
   print("\n No suitable number of arguments given")
   print(" Usage: quantum_dynamics.py <input name>")
   sys.exit(1)
-filename = sys.argv[1]
+input_filename = sys.argv[1]
 
-try:
-  input_file = open(filename, 'r')
-except:
-  print("File", filename, "could not be found!")
-  sys.exit(2)
-
-for line in input_file:
-  if re.search("=", line):
-    line = line.rstrip().split("=")
-    param, val = line
-    param = param.rstrip()
-    if param == "dt":
-      dt = float(val)
-    if param == "nsteps":
-      nsteps = int(val)
-    if param == "dx":
-      dx = float(val)
-    if param == "ngridpoints":
-      ngridpoints = int(val)
-    if param == "x0":
-      x0 = float(val)
-    if param == "p0":
-      p0 = float(val)
-    if param == "sigma":
-      sigma = float(val)
-    if param == "k":
-      k = float(val)
-    if param == "mass":
-      mass = float(val)
-    if param == "output_mode":
-      output_mode = int(val)
-    if param == "output_step":
-      output_step = int(val)
-
-input_file.close()
+# Set simulation parameters
+dt, nsteps, dx, ngridpoints, x0, p0, sigma, k, mass, output_mode, \
+output_step = read_input(input_filename)
 
 print("""
 Project 5: Simulation of Quantum Dynamics
@@ -96,7 +34,7 @@ Author: Maximilian Bechtel <maxi.bechtel@fau.de>
 Project of the course Scientific Programming at FAU Erlangen-Nuernberg
 """)
 
-print("Input will be read from", filename)
+print("Input will be read from", input_filename)
 
 print(f"""
 -------------SIMULATION PARAMETERS---------------
@@ -117,13 +55,17 @@ Energies will be written for each {output_step}th time step
 -------------------------------------------------
 """)
 
-# File handler for writing output
+# File handlers for writing output
 output_name = "energy.dat"
 plot_name = "plot.dat"
 output_file = open(output_name, 'w')
 plot_file = open(plot_name, 'w')
 output_file.write("#Time step Norm Total Energy Kinetic Energy " \
                 + "Potential Energy\n")
+
+###############################################################################
+###################### Initializations for t = 0 ##############################
+###############################################################################
 
 # Create an array with the x-values of the grid
 # The grid points (ngridpoints) are equally distributed around x0
@@ -136,22 +78,31 @@ print("done")
 print("\n Creating potential ...", end='')
 v_values = harmonic_potential(x_values, k, x0)
 print("done")
-# Generate start configuration of psi (t = 0)
+
+# Generate start configuration of psi (gaussian wave packet)
 print("\n Creating initial Gaussian wave packet ...", end='')
 psi = gaussian(x_values, x0, sigma, p0)
 norm = calc_norm(psi, dx)
 psi *= norm
 print("done")
 
-# Test if psi is really normalized
-psi_2 = psi*np.conjugate(psi)
-norm = sum(psi_2*dx).real
+# Write out start configuration
+plot_file.write("#Potential\n")
+for i in range(len(x_values)):
+  plot_file.write(f"{x_values[i]:.4f}    {v_values[i]:.5f}\n")
+plot_file.write("\n\n")
+
+psi_2 = np.abs(psi)**2
+norm = np.sum(psi_2*dx)
 output_file.write(f"0.0000 {norm:.5f}\n")
-plot_file.write(f"#0.0000\n {psi_2}\n")
-#norm = 0.0
-#for i in range(len(psi)):
-  #norm += abs(psi[i])**2 * dx
-#print(f"\nNormalization: {norm:.5f}")
+plot_file.write(f"#0.0000\n")
+for i in range(len(x_values)):
+  plot_file.write(f" {x_values[i]:.4f}    {psi_2[i]:.5f}\n")
+plot_file.write("\n\n")
+
+###############################################################################
+############################### Main Loop #####################################
+###############################################################################
 
 # Allocate arrays a,b,c,d for Thomas algorithm
 # ngridpoints = number of equations in LES
@@ -159,10 +110,6 @@ a = np.ones(ngridpoints - 1)                    # subdiagonal
 c = np.ones(ngridpoints - 1)                    # supradiagonal
 b = calc_b(v_values, ngridpoints, dx, dt,mass)  # main diagonal
 d = np.zeros(ngridpoints, dtype=complex)        # right hand side vector
-
-###############################################################################
-############################### Main Loop #####################################
-###############################################################################
 
 print("\nEntering main loop ...")
 
@@ -179,13 +126,17 @@ for i in range(1, nsteps+1):
   ##### STEP 2: Solve LES with Thomas algorithm -> new psi
   solve_les_thomas(a, b, c, d, psi)
   ##### STEP 3: Write output
-  psi_2 = abs(psi)**2
+  psi_2 = np.abs(psi)**2
+  norm = np.sum(psi_2*dx)
 
   im = ax.plot(x_values, psi_2, 'b')
   ims.append(im)
-  norm = sum(psi_2*dx).real
 
   plot_file.write(f"#{i*dt:.4f}\n")
+  for j in range(len(x_values)):
+    plot_file.write(f" {x_values[j]:.4f}    {psi_2[j]:.5f}\n")
+  plot_file.write("\n\n")
+
   if i%output_step == 0:
       output_file.write(f"{i*dt:.4f} {norm:.5f}\n")
 
