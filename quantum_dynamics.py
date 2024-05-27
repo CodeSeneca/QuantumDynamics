@@ -116,6 +116,7 @@ print("\nEntering main loop ...")
 fig, ax = plt.subplots()
 ax.grid()
 ax.set_xlabel("x")
+ax.set_ylim([0, 1.5])
 
 # Loop over all time steps
 ims = []
@@ -152,4 +153,5 @@ print("\n Written wave function to", plot_name, "for plotting ...")
 
 # Plot all created images
 ani = animation.ArtistAnimation(fig, ims, interval=20, blit=True)
+plt.plot(x_values, v_values)
 plt.show()
