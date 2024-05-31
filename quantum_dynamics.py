@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from pkg.functions import harmonic_potential, gaussian
 from pkg.simulation import calc_norm, calc_b, calc_d, solve_les_thomas
-from pkg.input import read_input
+from pkg.input import read_input, write_output
 
 ###############################################################################
 ############################## Input parameters ###############################
@@ -24,7 +24,7 @@ if argc != 2:
 input_filename = sys.argv[1]
 
 # Set simulation parameters
-dt, nsteps, dx, ngridpoints, x0, p0, sigma, k, mass, output_mode, \
+dt, nsteps, dx, ngridpoints, x0, p0, sigma, k, mass, potential, output_mode, \
 output_step = read_input(input_filename)
 
 print("""
@@ -49,9 +49,19 @@ Start momentum of particle p0 = {p0}
 Standard deviation of Gaussian sigma = {sigma}
 Particle mass = {mass}
 
-Force constant for harmonic potential = {k}
+Results will be written for each {output_step}th time step
+""")
 
-Energies will be written for each {output_step}th time step
+if potential == 1:
+  print(f"""
+A free particle will be simulated
+-------------------------------------------------
+""")
+
+elif potential == 2:
+  print(f"""
+A harmonic potential will be simulated
+Force constant for harmonic potential = {k}
 -------------------------------------------------
 """)
 
@@ -76,7 +86,12 @@ print("done")
 
 # Create an array with the values of the potential on the grid
 print("\n Creating potential ...", end='')
-v_values = harmonic_potential(x_values, k, x0)
+# Free particle
+if potential == 1:
+  v_values = np.zeros(ngridpoints)
+# Harmonic potential
+if potential == 2:
+  v_values = harmonic_potential(x_values, k, x0)
 print("done")
 
 # Generate start configuration of psi (gaussian wave packet)
@@ -87,18 +102,13 @@ psi *= norm
 print("done")
 
 # Write out start configuration
+# First block: Potential
 plot_file.write("#Potential\n")
 for i in range(len(x_values)):
   plot_file.write(f"{x_values[i]:.4f}    {v_values[i]:.5f}\n")
 plot_file.write("\n\n")
-
-psi_2 = np.abs(psi)**2
-norm = np.sum(psi_2*dx)
-output_file.write(f"0.0000 {norm:.5f}\n")
-plot_file.write(f"#0.0000\n")
-for i in range(len(x_values)):
-  plot_file.write(f" {x_values[i]:.4f}    {psi_2[i]:.5f}\n")
-plot_file.write("\n\n")
+# Next blocks: |Psi|^2
+write_output(0, plot_file, output_file, psi, x_values, dx, dt)
 
 ###############################################################################
 ############################### Main Loop #####################################
@@ -113,33 +123,20 @@ d = np.zeros(ngridpoints, dtype=complex)        # right hand side vector
 
 print("\nEntering main loop ...")
 
-fig, ax = plt.subplots()
-ax.grid()
-ax.set_xlabel("x")
-ax.set_ylim([0, 1.5])
-
 # Loop over all time steps
-ims = []
 start = time.time()
 for i in range(1, nsteps+1):
   ##### STEP 1: With current psi calculate new vector d
   calc_d(d, v_values, psi, dt, dx)
   ##### STEP 2: Solve LES with Thomas algorithm -> new psi
   solve_les_thomas(a, b, c, d, psi)
-  ##### STEP 3: Write output
-  psi_2 = np.abs(psi)**2
-  norm = np.sum(psi_2*dx)
-
-  im = ax.plot(x_values, psi_2, 'b')
-  ims.append(im)
-
-  plot_file.write(f"#{i*dt:.4f}\n")
-  for j in range(len(x_values)):
-    plot_file.write(f" {x_values[j]:.4f}    {psi_2[j]:.5f}\n")
-  plot_file.write("\n\n")
-
+  ##### STEP 3: Write output for each nth step
   if i%output_step == 0:
-      output_file.write(f"{i*dt:.4f} {norm:.5f}\n")
+    write_output(i, plot_file, output_file, psi, x_values, dx, dt)
+
+  perc = 100 * i/nsteps
+  if perc%10 == 0:
+    print(f" ... {int(perc)} % done")
 
 end = time.time()
 diff = end - start
@@ -147,11 +144,6 @@ print(f"Finished in {diff:0.3f} s")
 
 output_file.close()
 plot_file.close()
-print("\n Written Norm, Total Energy, Kinetic Energy and Potential Energy to ",\
+print("\n Written Norm, Total Energy, Kinetic Energy and Potential Energy to",\
       output_name, "...")
 print("\n Written wave function to", plot_name, "for plotting ...")
-
-# Plot all created images
-ani = animation.ArtistAnimation(fig, ims, interval=20, blit=True)
-plt.plot(x_values, v_values)
-plt.show()

@@ -14,10 +14,10 @@ p0                      start momentum of initial Gaussian
 sigma                   standard deviation of initial Gaussain
 k                       harmonic force constant
 mass                    particle mass
+potential               1 = free particle, 2 = harmonic
 output_mode             extent of output written
 output_step             write out energy for only each nth time step
 """
-
 
 def read_input(filename:str) -> list:
   """Read simulation parameters from input file
@@ -38,6 +38,7 @@ def read_input(filename:str) -> list:
   sigma = 1.0
   k = 5.0
   mass = 1.0
+  potential = 2
   output_mode = 1
   output_step = 10
 
@@ -71,6 +72,8 @@ def read_input(filename:str) -> list:
         k = float(val)
       if param == "mass":
         mass = float(val)
+      if param == "potential":
+        potential = int(val)
       if param == "output_mode":
         output_mode = int(val)
       if param == "output_step":
@@ -78,5 +81,28 @@ def read_input(filename:str) -> list:
 
   input_file.close()
 
-  return dt, nsteps, dx, ngridpoints, x0, p0, sigma, k, mass, output_mode, \
-         output_step
+  return dt, nsteps, dx, ngridpoints, x0, p0, sigma, k, mass, potential, \
+         output_mode, output_step
+
+def write_output(step, plot_file, output_file, psi, x_values, dx, dt) -> None:
+  """Write wave function and energies to output files
+
+  step                current step that should be written out
+  plot_file           output file for wave function
+  output_file         output file for energies and norm
+  psi                 complex array with values of wave function on the grid
+  x_values            grid values
+  dx                  grid spacing
+  dt                  time step
+  """
+
+  # Calculate |Psi|^2 and norm for writing
+  psi_2 = np.abs(psi)**2
+  norm = np.sum(psi_2*dx)
+
+  plot_file.write(f"#{step*dt:.4f}\n")
+  for i in range(len(x_values)):
+    plot_file.write(f" {x_values[i]:.4f}    {psi_2[i]:.5f}\n")
+  plot_file.write("\n\n")
+
+  output_file.write(f"{step*dt:.4f} {norm:.5f}\n")
