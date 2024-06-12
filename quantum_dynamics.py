@@ -7,8 +7,9 @@ import sys
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
-from pkg.functions import harmonic_potential, gaussian
-from pkg.simulation import calc_norm, calc_b, calc_d, solve_les_thomas
+from pkg.functions import harmonic_potential, morse_potential, gaussian
+from pkg.simulation import calc_norm, calc_b, calc_d, solve_les_thomas, \
+                           calc_Epot, calc_Ekin
 from pkg.input import read_input, write_output
 
 ###############################################################################
@@ -52,6 +53,16 @@ Particle mass = {mass}
 Results will be written for each {output_step}th time step
 """)
 
+if output_mode == 0:
+    print(f"""
+No output will be written
+""")
+
+elif output_mode == 1:
+    print(f"""
+Wave function and energies will be written out
+""")
+
 if potential == 1:
   print(f"""
 A free particle will be simulated
@@ -65,13 +76,20 @@ Force constant for harmonic potential = {k}
 -------------------------------------------------
 """)
 
+elif potential == 3:
+  print(f"""
+A Morse potential will be simulated
+-------------------------------------------------
+""")
+
 # File handlers for writing output
-output_name = "energy.dat"
-plot_name = "plot.dat"
-output_file = open(output_name, 'w')
-plot_file = open(plot_name, 'w')
-output_file.write("#Time step Norm Total Energy Kinetic Energy " \
-                + "Potential Energy\n")
+if output_mode != 0:
+  output_name = "energy.dat"
+  plot_name = "plot.dat"
+  output_file = open(output_name, 'w')
+  plot_file = open(plot_name, 'w')
+  output_file.write("#Time step Norm Potential Energy Kinetic Energy " \
+                + "Total Energy\n")
 
 ###############################################################################
 ###################### Initializations for t = 0 ##############################
@@ -90,8 +108,11 @@ print("\n Creating potential ...", end='')
 if potential == 1:
   v_values = np.zeros(ngridpoints)
 # Harmonic potential
-if potential == 2:
+elif potential == 2:
   v_values = harmonic_potential(x_values, k, x0)
+# Morse potential
+elif potential == 3:
+  v_values = morse_potential(x_values, 1, x0)
 print("done")
 
 # Generate start configuration of psi (gaussian wave packet)
@@ -103,12 +124,17 @@ print("done")
 
 # Write out start configuration
 # First block: Potential
-plot_file.write("#Potential\n")
-for i in range(len(x_values)):
-  plot_file.write(f"{x_values[i]:.4f}    {v_values[i]:.5f}\n")
-plot_file.write("\n\n")
-# Next blocks: |Psi|^2
-write_output(0, plot_file, output_file, psi, x_values, dx, dt)
+if output_mode != 0:
+  plot_file.write("#Potential\n")
+  for i in range(len(x_values)):
+    plot_file.write(f"{x_values[i]:.4f}    {v_values[i]:.5f}\n")
+  plot_file.write("\n\n")
+  # Next blocks: |Psi|^2
+  epot = calc_Epot(psi, v_values, dx)
+  ekin = calc_Ekin(psi, dx, mass)
+  etot = ekin + epot
+  write_output(0, plot_file, output_file, psi, x_values, dx, dt, epot, \
+               ekin, etot)
 
 ###############################################################################
 ############################### Main Loop #####################################
@@ -130,9 +156,13 @@ for i in range(1, nsteps+1):
   calc_d(d, v_values, psi, dt, dx)
   ##### STEP 2: Solve LES with Thomas algorithm -> new psi
   solve_les_thomas(a, b, c, d, psi)
-  ##### STEP 3: Write output for each nth step
-  if i%output_step == 0:
-    write_output(i, plot_file, output_file, psi, x_values, dx, dt)
+  ##### STEP 3: Calculate energies and write output for each nth step
+  if output_mode != 0 and i%output_step == 0:
+    epot = calc_Epot(psi, v_values, dx)
+    ekin = calc_Ekin(psi, dx, mass)
+    etot = ekin + epot
+    write_output(i, plot_file, output_file, psi, x_values, dx, dt, epot, \
+                 ekin, etot)
 
   perc = 100 * i/nsteps
   if perc%10 == 0:
@@ -142,8 +172,9 @@ end = time.time()
 diff = end - start
 print(f"Finished in {diff:0.3f} s")
 
-output_file.close()
-plot_file.close()
-print("\n Written Norm, Total Energy, Kinetic Energy and Potential Energy to",\
-      output_name, "...")
-print("\n Written wave function to", plot_name, "for plotting ...")
+if output_mode != 0:
+  output_file.close()
+  plot_file.close()
+  print("\n Written Norm, Total Energy, Kinetic Energy and Potential Energy",\
+        "to", output_name, "...")
+  print("\n Written wave function to", plot_name, "for plotting ...")

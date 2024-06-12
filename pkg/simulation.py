@@ -105,3 +105,34 @@ def solve_les_thomas(a:'real', b:'complex', c:'real', d:'complex', x) -> None:
   x[n-1] = d_trans[n-1]
   for i in range(n-2,-1,-1):
     x[i] = d_trans[i] - c_trans[i]*x[i+1]
+
+def calc_Epot(psi, V, dx) -> float:
+  """Calculate <V(t)>: the expectation value of the potential energy
+
+  sum_i(|psi_i|^2 * V_i * dx)
+  """
+
+  e_pot = np.sum(np.abs(psi)**2 * V) * dx
+
+  return e_pot
+
+def calc_Ekin(psi, dx, m) -> float:
+  """Calculate <Ekin(t)>"""
+
+  n = len(psi)
+  psi_diff = np.empty(n, dtype=complex)
+
+  # Middle elements
+  for i in range(1,n-1):
+    psi_diff[i] = psi[i+1] - 2*psi[i] + psi[i-1]
+  # Elements at the left and right border
+
+  psi_diff[0] = psi[i+1] - 2*psi[i]
+  psi_diff[-1] = - 2*psi[i] + psi[i-1]
+
+  psi_diff /= dx**2
+
+  e_kin = np.sum(np.conjugate(psi) * psi_diff) * dx
+  e_kin = -e_kin/(2*m)
+
+  return e_kin.real

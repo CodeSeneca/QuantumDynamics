@@ -1,10 +1,9 @@
 #! /mingw64/bin/python
 
-import sys
-import re
-
 """Skript to animate all time steps written by quantum_dynamics.py"""
 
+import sys
+import re
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
@@ -23,7 +22,7 @@ fig = plt.figure("Quantum Dynamics")
 ax = fig.add_subplot(1,1,1)
 
 # plot objects that should be updated in each frame
-psi, = ax.plot([], [], 'r', label=r'$|\Psi(x)|^2$')
+psi, = ax.plot([], [], 'r')
 time_text = ax.text(0.02, 0.95, '', transform=ax.transAxes)
 
 print("Reading in", filename, "...")
@@ -62,7 +61,7 @@ potential = data[0:ngridpoints,1]
 ###############################################################################
 def update(i):
   # Set up new wave function for ith frame
-  y = data[i*ngridpoints:(i+1)*ngridpoints,1]
+  y = data[(i+1)*ngridpoints:(i+2)*ngridpoints,1]
 
   time_text.set_text(f"time = {i*dt:.2f}")
   psi.set_data(x,y)
@@ -72,9 +71,14 @@ def update(i):
 anim = FuncAnimation(fig, update, frames=len(frames), blit=True, \
                      interval=delay, repeat_delay=1000)
 
-ax.plot(x, potential, 'b', label=r'$V(x)$')
 ax.set_xlabel(r'$x$')
+ax.set_ylabel(r'$|\Psi(x)|^2$')
 ax.set_ylim(0.0, 1.5)
 ax.grid()
-ax.legend()
+
+ax2 = ax.twinx()
+ax2.plot(x, potential, 'b')
+ax2.set_ylabel(r'$V(x)$')
+ax2.set_ylim(0.0)
+
 plt.show()

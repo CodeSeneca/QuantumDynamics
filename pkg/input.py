@@ -84,7 +84,7 @@ def read_input(filename:str) -> list:
   return dt, nsteps, dx, ngridpoints, x0, p0, sigma, k, mass, potential, \
          output_mode, output_step
 
-def write_output(step, plot_file, output_file, psi, x_values, dx, dt) -> None:
+def write_output(step, plot_file, output_file, psi, x_values, dx, dt, epot, ekin, etot) -> None:
   """Write wave function and energies to output files
 
   step                current step that should be written out
@@ -94,6 +94,7 @@ def write_output(step, plot_file, output_file, psi, x_values, dx, dt) -> None:
   x_values            grid values
   dx                  grid spacing
   dt                  time step
+  epot                expectation value of Epot
   """
 
   # Calculate |Psi|^2 and norm for writing
@@ -105,4 +106,4 @@ def write_output(step, plot_file, output_file, psi, x_values, dx, dt) -> None:
     plot_file.write(f" {x_values[i]:.4f}    {psi_2[i]:.5f}\n")
   plot_file.write("\n\n")
 
-  output_file.write(f"{step*dt:.4f} {norm:.5f}\n")
+  output_file.write(f"{step*dt:.4f} {norm:.5f} {epot:.5f} {ekin:.5f} {etot:.5f}\n")
