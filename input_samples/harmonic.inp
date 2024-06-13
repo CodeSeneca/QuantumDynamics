@@ -1,9 +1,9 @@
 Sample input file for a HARMONIC POTENTIAL
 
 potential = 2
-k = 3
+k = 5
 dt = 0.005
-nsteps = 1000
+nsteps = 4000
 dx = 0.01
 ngridpoints = 1000
 x0 = 0

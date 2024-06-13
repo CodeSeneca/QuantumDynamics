@@ -1,4 +1,4 @@
-#! /mingw64/bin/python
+#! /usr/bin/python3
 
 """Skript to animate all time steps written by quantum_dynamics.py"""
 

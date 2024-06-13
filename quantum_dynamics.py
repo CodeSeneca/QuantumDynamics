@@ -1,4 +1,4 @@
-#! /mingw64/bin/python
+#! /usr/bin/python3
 
 """Main program to drive everything"""
 
@@ -8,8 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from pkg.functions import harmonic_potential, morse_potential, gaussian
-from pkg.simulation import calc_norm, calc_b, calc_d, solve_les_thomas, \
-                           calc_Epot, calc_Ekin
+from pkg.simulation import calc_norm, calc_b, calc_d, solve_les, calc_Epot, calc_Ekin
 from pkg.input import read_input, write_output
 
 ###############################################################################
@@ -142,9 +141,8 @@ if output_mode != 0:
 
 # Allocate arrays a,b,c,d for Thomas algorithm
 # ngridpoints = number of equations in LES
-a = np.ones(ngridpoints - 1)                    # subdiagonal
-c = np.ones(ngridpoints - 1)                    # supradiagonal
-b = calc_b(v_values, ngridpoints, dx, dt,mass)  # main diagonal
+#a = np.ones(ngridpoints - 1)                    # subdiagonal
+#c = np.ones(ngridpoints - 1)                    # supradiagonal
 d = np.zeros(ngridpoints, dtype=complex)        # right hand side vector
 
 print("\nEntering main loop ...")
@@ -152,10 +150,11 @@ print("\nEntering main loop ...")
 # Loop over all time steps
 start = time.time()
 for i in range(1, nsteps+1):
-  ##### STEP 1: With current psi calculate new vector d
-  calc_d(d, v_values, psi, dt, dx)
+  ##### STEP 1: With current psi calculate new vector d and overwritten vector b
+  b = calc_b(v_values, ngridpoints, dx, dt, mass)
+  d = calc_d(v_values, psi, dt, dx, mass)
   ##### STEP 2: Solve LES with Thomas algorithm -> new psi
-  solve_les_thomas(a, b, c, d, psi)
+  psi = solve_les(b, d)
   ##### STEP 3: Calculate energies and write output for each nth step
   if output_mode != 0 and i%output_step == 0:
     epot = calc_Epot(psi, v_values, dx)
