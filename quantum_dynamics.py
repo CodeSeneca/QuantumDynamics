@@ -111,7 +111,7 @@ elif potential == 2:
   v_values = harmonic_potential(x_values, k, x0)
 # Morse potential
 elif potential == 3:
-  v_values = morse_potential(x_values, 1, x0)
+  v_values = morse_potential(x_values, 0.5, x0)
 print("done")
 
 # Generate start configuration of psi (gaussian wave packet)

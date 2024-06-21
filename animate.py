@@ -79,6 +79,6 @@ ax.grid()
 ax2 = ax.twinx()
 ax2.plot(x, potential, 'b')
 ax2.set_ylabel(r'$V(x)$')
-ax2.set_ylim(0.0)
+ax2.set_ylim(0.0, potential[-1] + 1.0)
 
 plt.show()
