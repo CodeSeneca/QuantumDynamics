@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 
 filename = "plot.dat"
+energy_file = "energy.dat"
 
 # Delay between each frame (ms)
 if len(sys.argv) != 2:
@@ -24,8 +25,20 @@ ax = fig.add_subplot(1,1,1)
 # plot objects that should be updated in each frame
 psi, = ax.plot([], [], 'r')
 time_text = ax.text(0.02, 0.95, '', transform=ax.transAxes)
+ekin_text = ax.text(0.24, 0.95, '', transform=ax.transAxes)
+epot_text = ax.text(0.46, 0.95, '', transform=ax.transAxes)
+etot_text = ax.text(0.68, 0.95, '', transform=ax.transAxes)
 
 print("Reading in", filename, "...")
+
+# Read in energy values from file energy.dat
+energy_data = np.genfromtxt(energy_file, comments='#')
+time_steps = energy_data[:,0]
+norm = energy_data[:,1]
+epot = energy_data[:,2]
+ekin = energy_data[:,3]
+etot = energy_data[:,4]
+
 # Read in generated values from file plot.dat
 data = np.genfromtxt(filename, comments='#')
 
@@ -64,9 +77,12 @@ def update(i):
   y = data[(i+1)*ngridpoints:(i+2)*ngridpoints,1]
 
   time_text.set_text(f"time = {i*dt:.2f}")
+  ekin_text.set_text(f"<Ekin> = {ekin[i]:.2f}")
+  epot_text.set_text(f"<Epot> = {epot[i]:.2f}")
+  etot_text.set_text(f"<Etot> = {etot[i]:.2f}")
   psi.set_data(x,y)
 
-  return psi, time_text
+  return psi, time_text, ekin_text, epot_text, etot_text
 
 anim = FuncAnimation(fig, update, frames=len(frames), blit=True, \
                      interval=delay, repeat_delay=1000)
