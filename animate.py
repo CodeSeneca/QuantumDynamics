@@ -17,7 +17,14 @@ if len(sys.argv) != 2:
   print(" No suitable number of arguments given")
   print(" Usage: animate.py [delay between frames (ms)]")
   sys.exit(1)
-delay = float(sys.argv[1])
+
+try:
+  delay = float(sys.argv[1])
+except:
+  print("")
+  print(" No suitable delay given")
+  print(" Usage: animate.py [delay between frames (ms)]")
+  sys.exit(2)
 
 fig = plt.figure("Quantum Dynamics")
 ax = fig.add_subplot(1,1,1)
@@ -29,18 +36,22 @@ ekin_text = ax.text(0.24, 0.95, '', transform=ax.transAxes)
 epot_text = ax.text(0.46, 0.95, '', transform=ax.transAxes)
 etot_text = ax.text(0.68, 0.95, '', transform=ax.transAxes)
 
+# Read in values from plot.dat and energy.dat
 print("Reading in", filename, "...")
+try:
+  data = np.genfromtxt(filename, comments='#')
+  energy_data = np.genfromtxt(energy_file, comments='#')
+except:
+  print("")
+  print("Either plot.dat or energy.dat was not found ...")
+  print("Aborting ...")
+  sys.exit(3)
 
-# Read in energy values from file energy.dat
-energy_data = np.genfromtxt(energy_file, comments='#')
 time_steps = energy_data[:,0]
 norm = energy_data[:,1]
 epot = energy_data[:,2]
 ekin = energy_data[:,3]
 etot = energy_data[:,4]
-
-# Read in generated values from file plot.dat
-data = np.genfromtxt(filename, comments='#')
 
 # Determine number of x values = number of gridpoints
 plot_file = open(filename, 'r')
