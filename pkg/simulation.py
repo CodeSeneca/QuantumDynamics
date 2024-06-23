@@ -62,7 +62,7 @@ def calc_d(V:'ndarray', psi:'complex ndarray', dt, dx, mass) -> 'ndarray':
            -psi[i-1]
 
   # Most left element
-  d[0] = -psi[1] + 2*( mass*dx**2 * (2j/dt + V[0]) + 1 )*psi[0] \
+  d[0] = -psi[1] + 2*( mass*dx**2 * (2j/dt + V[0]) + 1 )*psi[0]
 
   # Most right element
   d[-1] = 2*( mass*dx**2 * (2j/dt + V[-1]) + 1 )*psi[-1] - psi[-2]
@@ -70,7 +70,7 @@ def calc_d(V:'ndarray', psi:'complex ndarray', dt, dx, mass) -> 'ndarray':
   return d
 
 def solve_les(b, d):
-  """Solve the Liner Equation System (LES) by using the Thomas algorithm
+  """Solve the Linear Equation System (LES) by using the Thomas algorithm
 
   return psi       solution vector of LES = wavefunction on grid
   CAUTION: b and d are overwritten

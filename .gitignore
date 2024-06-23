@@ -1,4 +1,6 @@
 *.pyc
+*.pyd
+*.pyf
 *.dat
 *.swp
 *.pdf
