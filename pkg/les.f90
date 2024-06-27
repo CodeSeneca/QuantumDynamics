@@ -53,3 +53,37 @@ subroutine calc_d(V, psi, dt, dx, mass, n, d)
 
 end subroutine
 
+subroutine calc_ekin(psi, n, dx, m, ekin)
+  implicit none
+
+  ! Dummy variables
+  double precision :: dx, m, ekin
+  integer :: n
+  double complex, dimension(n) :: psi
+
+  !f2py intent(hide) :: n
+  !f2py intent(in) :: dx, m, psi
+  !f2py intent(out) :: ekin
+
+  ! Local variables
+  double complex, dimension(n) :: psi_2  ! Second derivative of psi
+  integer :: i
+
+  ! Calculate second derivative of psi
+  ! Middle elements [2, n-1]
+  do i = 2, n-1
+    psi_2(i) = psi(i+1) - 2*psi(i) + psi(i-1)
+  end do
+  ! First and last element
+  psi_2(1) = psi(2) - 2*psi(1)
+  psi_2(n) = -2*psi(n) + psi(n-1)
+
+  psi_2 = psi_2 / (dx**2)
+
+  ekin = 0.0d0
+  do i = 1, n
+    ekin = ekin + real(( conjg(psi(i)) * psi_2(i) ) * dx)
+  end do
+  ekin = -ekin/(2.0d0*m)
+end subroutine calc_ekin
+

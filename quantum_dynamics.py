@@ -1,5 +1,4 @@
-#! /mingw64/bin/python
-
+#! /usr/bin/python3
 """Main program to drive everything"""
 
 import time
@@ -10,7 +9,7 @@ import matplotlib.animation as animation
 from pkg.input import read_input, write_output
 from pkg.functions import harmonic_potential, morse_potential, gaussian
 from pkg.simulation import calc_norm, calc_b, calc_Epot, calc_Ekin
-from pkg.les import solve_les, calc_d
+from pkg.les import solve_les, calc_d, calc_ekin
 
 ###############################################################################
 ############################## Input parameters ###############################
@@ -113,11 +112,16 @@ elif potential == 2:
 # Morse potential
 elif potential == 3:
   v_values = morse_potential(x_values, 0.5, x0)
+elif potential == 4:
+  v_values = np.zeros(ngridpoints)
+  v_values[ngridpoints//2 + 200:ngridpoints//2 + 300] = 0.5
 print("done")
 
 # Generate start configuration of psi (gaussian wave packet)
 print("\n Creating initial Gaussian wave packet ...", end='')
-psi = gaussian(x_values, x0, sigma, p0)
+#psi = gaussian(x_values, x0, sigma, p0)
+b = np.pi/(2*(x0 - 0.5*ngridpoints*dx))
+psi = np.cos(b * x_values)
 norm = calc_norm(psi, dx)
 psi *= norm
 print("done")
@@ -161,7 +165,8 @@ for i in range(1, nsteps+1):
   ##### STEP 3: Calculate energies and write output for each nth step
   if output_mode != 0 and i%output_step == 0:
     epot = calc_Epot(psi, v_values, dx)
-    ekin = calc_Ekin(psi, dx, mass)
+    #ekin = calc_Ekin(psi, dx, mass)
+    ekin = calc_ekin(psi, dx, mass)
     etot = ekin + epot
     write_output(i, plot_file, output_file, psi, x_values, dx, dt, epot, \
                  ekin, etot)

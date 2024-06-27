@@ -12,6 +12,7 @@ def calc_norm(psi:'complex ndarray', dx:float) -> float:
 
   psi_2 = np.abs(psi)**2
   norm = np.sum(psi_2*dx)
+
   # This is the vectorized version of:
 
   #norm = 0.0
@@ -144,15 +145,15 @@ def calc_Ekin(psi, dx, m) -> float:
   """Calculate <Ekin(t)>"""
 
   n = len(psi)
+  # Calculate second derivative of psi = psi_diff
   psi_diff = np.empty(n, dtype=complex)
 
-  # Middle elements
+  # Middle elements [2, n-2]
   for i in range(1,n-1):
     psi_diff[i] = psi[i+1] - 2*psi[i] + psi[i-1]
   # Elements at the left and right border
-
-  psi_diff[0] = psi[i+1] - 2*psi[i]
-  psi_diff[-1] = - 2*psi[i] + psi[i-1]
+  psi_diff[0] = psi[1] - 2*psi[0]
+  psi_diff[-1] = -2*psi[-1] + psi[-2]
 
   psi_diff /= dx**2
 
