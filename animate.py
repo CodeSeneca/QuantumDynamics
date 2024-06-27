@@ -32,9 +32,9 @@ ax = fig.add_subplot(1,1,1)
 # plot objects that should be updated in each frame
 psi, = ax.plot([], [], 'r')
 time_text = ax.text(0.02, 0.95, '', transform=ax.transAxes)
-ekin_text = ax.text(0.24, 0.95, '', transform=ax.transAxes)
-epot_text = ax.text(0.46, 0.95, '', transform=ax.transAxes)
-etot_text = ax.text(0.68, 0.95, '', transform=ax.transAxes)
+ekin_text = ax.text(0.22, 0.95, '', transform=ax.transAxes)
+epot_text = ax.text(0.48, 0.95, '', transform=ax.transAxes)
+etot_text = ax.text(0.74, 0.95, '', transform=ax.transAxes)
 
 # Read in values from plot.dat and energy.dat
 print("Reading in", filename, "...")
@@ -69,7 +69,7 @@ plot_file.readline()
 frames = []
 for line in plot_file:
   if re.search('#', line):
-    val = float(line.rstrip().strip('#'))
+    val = complex(line.rstrip().strip('#'))
     frames.append(val)
 
 dt = frames[1] - frames[0]
@@ -88,9 +88,9 @@ def update(i):
   y = data[(i+1)*ngridpoints:(i+2)*ngridpoints,1]
 
   time_text.set_text(f"time = {i*dt:.2f}")
-  ekin_text.set_text(f"<Ekin> = {ekin[i]:.2f}")
-  epot_text.set_text(f"<Epot> = {epot[i]:.2f}")
-  etot_text.set_text(f"<Etot> = {etot[i]:.2f}")
+  ekin_text.set_text(f"<Ekin> = {ekin[i]:.4f}")
+  epot_text.set_text(f"<Epot> = {epot[i]:.4f}")
+  etot_text.set_text(f"<Etot> = {etot[i]:.4f}")
   psi.set_data(x,y)
 
   return psi, time_text, ekin_text, epot_text, etot_text
@@ -106,6 +106,6 @@ ax.grid()
 ax2 = ax.twinx()
 ax2.plot(x, potential, 'b')
 ax2.set_ylabel(r'$V(x)$')
-ax2.set_ylim(0.0, potential[-1] + 1.0)
+ax2.set_ylim(0.0, potential[-1] + 2.0)
 
 plt.show()

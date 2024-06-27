@@ -30,7 +30,8 @@ subroutine calc_d(V, psi, dt, dx, mass, n, d)
 
   ! Dummy variables
   integer :: n
-  double precision :: dt, dx, mass
+  double precision :: dx, mass
+  double complex :: dt
   double precision, dimension(n) :: V
   double complex, dimension(n) :: psi, d
 
@@ -86,4 +87,3 @@ subroutine calc_ekin(psi, n, dx, m, ekin)
   end do
   ekin = -ekin/(2.0d0*m)
 end subroutine calc_ekin
-

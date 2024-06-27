@@ -15,6 +15,8 @@ sigma                   standard deviation of initial Gaussain
 k                       harmonic force constant
 mass                    particle mass
 potential               1 = free particle, 2 = harmonic
+wavefunction            1 = gaussian wave packet, 2 = sinus (eigenfucntion
+                        of particle in box)
 output_mode             extent of output written
 output_step             write out energy for only each nth time step
 """
@@ -39,6 +41,7 @@ def read_input(filename:str) -> list:
   k = 5.0
   mass = 1.0
   potential = 2
+  wavefunction = 1
   output_mode = 1
   output_step = 10
 
@@ -55,7 +58,7 @@ def read_input(filename:str) -> list:
       param, val = line
       param = param.rstrip()
       if param == "dt":
-        dt = float(val)
+        dt = complex(val)
       if param == "nsteps":
         nsteps = int(val)
       if param == "dx":
@@ -74,6 +77,9 @@ def read_input(filename:str) -> list:
         mass = float(val)
       if param == "potential":
         potential = int(val)
+      if param == "wavefunction":
+        wavefunction = int(val)
+        print("Wavefunction: ", wavefunction)
       if param == "output_mode":
         output_mode = int(val)
       if param == "output_step":
@@ -82,7 +88,7 @@ def read_input(filename:str) -> list:
   input_file.close()
 
   return dt, nsteps, dx, ngridpoints, x0, p0, sigma, k, mass, potential, \
-         output_mode, output_step
+         wavefunction, output_mode, output_step
 
 def write_output(step, plot_file, output_file, psi, x_values, dx, dt, epot, ekin, etot) -> None:
   """Write wave function and energies to output files
