@@ -69,7 +69,7 @@ plot_file.readline()
 frames = []
 for line in plot_file:
   if re.search('#', line):
-    val = complex(line.rstrip().strip('#'))
+    val = float(line.rstrip().strip('#'))
     frames.append(val)
 
 dt = frames[1] - frames[0]

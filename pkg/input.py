@@ -103,6 +103,11 @@ def write_output(step, plot_file, output_file, psi, x_values, dx, dt, epot, ekin
   epot                expectation value of Epot
   """
 
+  if dt.real == 0.0:
+    dt = dt.imag
+  elif dt.imag == 0.0:
+    dt = dt.real
+
   # Calculate |Psi|^2 and norm for writing
   psi_2 = np.abs(psi)**2
   norm = np.sum(psi_2*dx)
