@@ -1,15 +1,14 @@
 #! /usr/bin/python3
+
 """Main program to drive everything"""
 
 import time
 import sys
 import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.animation as animation
-from pkg.input import read_input, write_output
+from pkg.IO import read_input, write_output
 from pkg.functions import harmonic_potential, morse_potential, gaussian
 from pkg.simulation import calc_norm, calc_b, calc_Epot
-from pkg.les import solve_les, calc_d, calc_ekin
+from pkg.les import solve_les, calc_d, calc_ekin, calc_p, calc_x
 
 ###############################################################################
 ############################## Input parameters ###############################
@@ -24,7 +23,7 @@ if argc != 2:
 input_filename = sys.argv[1]
 
 # Set simulation parameters
-dt, nsteps, dx, ngridpoints, x0, p0, sigma, k, mass, potential, wavefunction, \
+dt, nsteps, dx, ngridpoints, x0, p0, sigma, k, alpha, box, mass, potential, wavefunction, \
 output_mode, output_step = read_input(input_filename)
 
 print("""
@@ -64,7 +63,8 @@ Wave function and energies will be written out
 
 if potential == 1:
   print(f"""
-A free particle will be simulated
+A particle in a box will be simulated
+box heigt = {box}
 """)
 
 elif potential == 2:
@@ -76,6 +76,7 @@ Force constant for harmonic potential = {k}
 elif potential == 3:
   print(f"""
 A Morse potential will be simulated
+Stiffness of potential alpha = {alpha}
 """)
 
 elif potential == 4:
@@ -103,14 +104,14 @@ if output_mode != 0:
   output_file = open(output_name, 'w')
   plot_file = open(plot_name, 'w')
   output_file.write("#Time step Norm Potential Energy Kinetic Energy " \
-                + "Total Energy\n")
+                + "Total Energy momentum p location x\n")
 
 ###############################################################################
 ###################### Initializations for t = 0 ##############################
 ###############################################################################
 
 # Create an array with the x-values of the grid
-# The grid points (ngridpoints) are equally distributed around x0
+# The grid points are equally distributed around x0
 print(" Creating simulation grid ...", end='')
 x_values = np.linspace(x0 - 0.5*ngridpoints*dx, x0 + 0.5*ngridpoints*dx, \
 ngridpoints)
@@ -118,23 +119,25 @@ print("done")
 
 # Create an array with the values of the potential on the grid
 print("\n Creating potential ...", end='')
-# Free particle
+# Particle in the box
 if potential == 1:
   v_values = np.zeros(ngridpoints)
+  v_values[0] = box
+  v_values[-1] = box
 # Harmonic potential
 elif potential == 2:
   v_values = harmonic_potential(x_values, k, x0)
 # Morse potential
 elif potential == 3:
-  v_values = morse_potential(x_values, 0.5, x0)
+  v_values = morse_potential(x_values, alpha, x0)
 # Potential wall
 elif potential == 4:
   v_values = np.zeros(ngridpoints)
   v_values[ngridpoints//2 + 200:ngridpoints//2 + 300] = 1.0
 print("done")
 
-# Generate start configuration of psi (gaussian wave packet)
-print("\n Creating initial Gaussian wave packet ...", end='')
+# Generate start configuration of psi
+print("\n Creating initial wave function ...", end='')
 
 if wavefunction == 1:
   psi = gaussian(x_values, x0, sigma, p0)
@@ -157,17 +160,15 @@ if output_mode != 0:
   epot = calc_Epot(psi, v_values, dx)
   ekin = calc_ekin(psi, dx, mass)
   etot = ekin + epot
+  p = calc_p(psi)
+  x = calc_x(psi, x_values, dx)
   write_output(0, plot_file, output_file, psi, x_values, dx, dt, epot, \
-               ekin, etot)
+               ekin, etot, p, x)
 
 ###############################################################################
 ############################### Main Loop #####################################
 ###############################################################################
 
-# Allocate arrays a,b,c,d for Thomas algorithm
-# ngridpoints = number of equations in LES
-#a = np.ones(ngridpoints - 1)                    # subdiagonal
-#c = np.ones(ngridpoints - 1)                    # supradiagonal
 d = np.zeros(ngridpoints, dtype=complex)         # right hand side vector
 
 print("\nEntering main loop ...")
@@ -175,7 +176,6 @@ print("\nEntering main loop ...")
 # Loop over all time steps
 start = time.time()
 for i in range(1, nsteps+1):
-  # print(f"Loop #{i}")
   ##### STEP 1: With current psi calculate new vector d and overwritten vector b
   b = calc_b(v_values, ngridpoints, dx, dt, mass)
   d = calc_d(v_values, psi, dt, dx, mass)
@@ -183,14 +183,15 @@ for i in range(1, nsteps+1):
   psi = solve_les(b, d)
   norm = calc_norm(psi, dx)
   psi *= norm
-  # print(type(psi[0]))
   ##### STEP 3: Calculate energies and write output for each nth step
   if output_mode != 0 and i%output_step == 0:
     epot = calc_Epot(psi, v_values, dx)
     ekin = calc_ekin(psi, dx, mass)
     etot = ekin + epot
+    p = calc_p(psi)
+    x = calc_x(psi, x_values, dx)
     write_output(i, plot_file, output_file, psi, x_values, dx, dt, epot, \
-                 ekin, etot)
+                 ekin, etot, p, x)
 
   perc = 100 * i/nsteps
   if perc%10 == 0:

@@ -2,13 +2,14 @@ Sample input file for a MORSE POTENTIAL
 
 wavefunction = 1
 potential = 3
+alpha = 0.5
 dt = 0.005
-nsteps = 4000
+nsteps = 8000
 dx = 0.01
 ngridpoints = 1000
 x0 = 0
 p0 = 1
-sigma = 0.2
+sigma = 0.5
 mass = 1
 output_mode = 1
 output_step = 10

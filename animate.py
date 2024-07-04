@@ -30,7 +30,8 @@ fig = plt.figure("Quantum Dynamics")
 ax = fig.add_subplot(1,1,1)
 
 # plot objects that should be updated in each frame
-psi, = ax.plot([], [], 'r')
+psi, = ax.plot([], [], 'r-')
+loc, = ax.plot([], [], 'go')
 time_text = ax.text(0.02, 0.95, '', transform=ax.transAxes)
 ekin_text = ax.text(0.22, 0.95, '', transform=ax.transAxes)
 epot_text = ax.text(0.48, 0.95, '', transform=ax.transAxes)
@@ -52,6 +53,7 @@ norm = energy_data[:,1]
 epot = energy_data[:,2]
 ekin = energy_data[:,3]
 etot = energy_data[:,4]
+x_loc = energy_data[:,6]
 
 # Determine number of x values = number of gridpoints
 plot_file = open(filename, 'r')
@@ -93,7 +95,10 @@ def update(i):
   etot_text.set_text(f"<Etot> = {etot[i]:.4f}")
   psi.set_data(x,y)
 
-  return psi, time_text, ekin_text, epot_text, etot_text
+  y_init, y_end = ax.get_ylim()
+  loc.set_data(x_loc[i], y_end/2)
+
+  return psi, loc, time_text, ekin_text, epot_text, etot_text
 
 anim = FuncAnimation(fig, update, frames=len(frames), blit=True, \
                      interval=delay, repeat_delay=1000)

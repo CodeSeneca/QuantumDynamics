@@ -1,14 +1,14 @@
-"""Definition of simulation related functions"""
+"""Definition of simulation related functions
+
+slow implementation in Python
+faster subroutines are used written in FORTRAN -> file les.f90
+by using f2py for compilation
+"""
 
 import numpy as np
 
 def calc_norm(psi:'complex ndarray', dx:float) -> float:
-  """Calculate the norm of given gaussian wave packet
-
-  psi               numpy array with complex values of psi on grid
-  dx                grid spacing
-  return norm       norm of gaussian wave packet -> float
-  """
+  """Calculate the norm of given gaussian wave packet"""
 
   psi_2 = np.abs(psi)**2
   norm = np.sum(psi_2*dx)
@@ -24,16 +24,7 @@ def calc_norm(psi:'complex ndarray', dx:float) -> float:
   return norm
 
 def calc_b(V:'ndarray', n:int, dx:float, dt:float, mass:float) -> 'ndarray':
-  """Calculate the elements bi of the main diagonal for Thomas algorithm
-
-  V                 array with elements Vi of the potential on the grid
-  n                 number of equations in LES = ngridpoints
-  dx                grid spacing
-  dt                time step
-  mass              particle mass
-  return b          array with elements of main diagonal
-                    -> complex elements
-  """
+  """Calculate the elements bi of the main diagonal for Thomas algorithm"""
 
   b = np.zeros(n, dtype=complex)
   b = mass*dx**2 * (2j/dt - V) - 1
@@ -42,12 +33,6 @@ def calc_b(V:'ndarray', n:int, dx:float, dt:float, mass:float) -> 'ndarray':
 
 def calc_d(V:'ndarray', psi:'complex ndarray', dt, dx, mass) -> 'ndarray':
   """Calculate the right hand side vector d for Thomas algorithm
-
-  potential         array with potential on the grid
-  psi               array with current wave function on the grid
-  dt                time step
-  dx                grid spacing
-  mass              particle mass
 
   BOUNDARY CONDITIONS:
   d_0:   no d_i-1
@@ -70,11 +55,17 @@ def calc_d(V:'ndarray', psi:'complex ndarray', dt, dx, mass) -> 'ndarray':
 
   return d
 
+##############################
+##### VERY SLOW IMPLEMENTATION
+##############################
+
 def solve_les(b, d):
   """Solve the Linear Equation System (LES) by using the Thomas algorithm
 
   return psi       solution vector of LES = wavefunction on grid
   CAUTION: b and d are overwritten
+
+  REFERENCE: https://en.wikipedia.org/wiki/Tridiagonal_matrix_algorithm
   """
 
   n = len(d)
@@ -91,6 +82,10 @@ def solve_les(b, d):
     psi[i] = ( d[i] - psi[i+1] ) / b[i]
 
   return psi
+
+################################
+##### MUCH FASTER IMPLEMENTATION
+################################
 
 def solve_les_thomas(a:'real', b:'complex', c:'real', d:'complex', x) -> None:
   """Solve a Linear Equation System (LES) by using the Thomas algorithm
@@ -132,10 +127,7 @@ def solve_les_thomas(a:'real', b:'complex', c:'real', d:'complex', x) -> None:
     x[i] = d_trans[i] - c_trans[i]*x[i+1]
 
 def calc_Epot(psi, V, dx) -> float:
-  """Calculate <V(t)>: the expectation value of the potential energy
-
-  sum_i(|psi_i|^2 * V_i * dx)
-  """
+  """Calculate <V(t)>: the expectation value of the potential energy"""
 
   e_pot = np.sum(np.abs(psi)**2 * V) * dx
 

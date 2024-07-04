@@ -1,4 +1,5 @@
 import re
+import sys
 import numpy as np
 
 """Definition of simulation parameters and I/O
@@ -13,8 +14,11 @@ x0                      start location of initial Gaussain
 p0                      start momentum of initial Gaussian
 sigma                   standard deviation of initial Gaussain
 k                       harmonic force constant
+alpha                   stiffness of the Morse potential
+box                     height of the box for particle in a box
 mass                    particle mass
-potential               1 = free particle, 2 = harmonic
+potential               1 = particle in the box, 2 = harmonic, 3 = Morse potential
+                        4 = potential wall
 wavefunction            1 = gaussian wave packet, 2 = sinus (eigenfucntion
                         of particle in box)
 output_mode             extent of output written
@@ -22,13 +26,7 @@ output_step             write out energy for only each nth time step
 """
 
 def read_input(filename:str) -> list:
-  """Read simulation parameters from input file
-
-  filename           name of the input file
-  return             list of simulation parameters
-                     -> if parameter is not given the default value will be
-                        used
-  """
+  """Read simulation parameters from input file"""
 
   # Default values
   dt = 0.005
@@ -39,6 +37,8 @@ def read_input(filename:str) -> list:
   p0 = 1.0
   sigma = 1.0
   k = 5.0
+  alpha = 0.5
+  box = 1000
   mass = 1.0
   potential = 2
   wavefunction = 1
@@ -73,6 +73,10 @@ def read_input(filename:str) -> list:
         sigma = float(val)
       if param == "k":
         k = float(val)
+      if param == "alpha":
+        alpha = float(val)
+      if param == "box":
+        box = float(val)
       if param == "mass":
         mass = float(val)
       if param == "potential":
@@ -87,21 +91,11 @@ def read_input(filename:str) -> list:
 
   input_file.close()
 
-  return dt, nsteps, dx, ngridpoints, x0, p0, sigma, k, mass, potential, \
+  return dt, nsteps, dx, ngridpoints, x0, p0, sigma, k, alpha, box, mass, potential, \
          wavefunction, output_mode, output_step
 
-def write_output(step, plot_file, output_file, psi, x_values, dx, dt, epot, ekin, etot) -> None:
-  """Write wave function and energies to output files
-
-  step                current step that should be written out
-  plot_file           output file for wave function
-  output_file         output file for energies and norm
-  psi                 complex array with values of wave function on the grid
-  x_values            grid values
-  dx                  grid spacing
-  dt                  time step
-  epot                expectation value of Epot
-  """
+def write_output(step, plot_file, output_file, psi, x_values, dx, dt, epot, ekin, etot, p, x):
+  """Write output to files plot_file and output_file"""
 
   if dt.real == 0.0:
     dt = dt.imag
@@ -117,4 +111,4 @@ def write_output(step, plot_file, output_file, psi, x_values, dx, dt, epot, ekin
     plot_file.write(f" {x_values[i]:.4f}    {psi_2[i]:.5f}\n")
   plot_file.write("\n\n")
 
-  output_file.write(f"{step*dt:.4f} {norm:.5f} {epot:.5f} {ekin:.5f} {etot:.5f}\n")
+  output_file.write(f"{step*dt:.5f}    {norm:.5f}    {epot:.5f}    {ekin:.5f}    {etot:.5f}    {p:.5f}    {x:.5f}\n")
