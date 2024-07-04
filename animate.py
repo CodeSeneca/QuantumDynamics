@@ -1,5 +1,7 @@
 #! /usr/bin/python3
 
+# Copyright: Maximilian Bechtel
+
 """Skript to animate all time steps written by quantum_dynamics.py"""
 
 import sys

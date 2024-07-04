@@ -1,3 +1,5 @@
+! Copyright: Maximilian Bechtel
+
 ! All simulation related subroutines
 ! Much faster implementation as in Python by using f2py
 

@@ -1,3 +1,5 @@
+# Copyright: Maximilian Bechtel
+
 """Definition of simulation related functions
 
 slow implementation in Python

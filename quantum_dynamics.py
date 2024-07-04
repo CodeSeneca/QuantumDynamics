@@ -1,5 +1,7 @@
 #! /usr/bin/python3
 
+# Copyright: Maximilian Bechtel
+
 """Main program to drive everything"""
 
 import time

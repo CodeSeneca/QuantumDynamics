@@ -1,3 +1,5 @@
+# Copyright: Maximilian Bechtel
+
 """Definition of all needed mathematical functions"""
 
 import numpy as np

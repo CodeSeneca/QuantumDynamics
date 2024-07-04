@@ -1,3 +1,5 @@
+# Copyright: Maximilian Bechtel
+
 import re
 import sys
 import numpy as np
