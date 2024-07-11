@@ -85,7 +85,6 @@ def read_input(filename:str) -> list:
         potential = int(val)
       if param == "wavefunction":
         wavefunction = int(val)
-        print("Wavefunction: ", wavefunction)
       if param == "output_mode":
         output_mode = int(val)
       if param == "output_step":
@@ -110,7 +109,7 @@ def write_output(step, plot_file, output_file, psi, x_values, dx, dt, epot, ekin
 
   plot_file.write(f"#{step*dt:.4f}\n")
   for i in range(len(x_values)):
-    plot_file.write(f" {x_values[i]:.4f}    {psi_2[i]:.5f}\n")
-  plot_file.write("\n\n")
+    plot_file.write(f" {x_values[i]:.5f}    {psi_2[i]:.5f}\n")
+  #plot_file.write("\n\n")
 
   output_file.write(f"{step*dt:.5f}    {norm:.5f}    {epot:.5f}    {ekin:.5f}    {etot:.5f}    {p:.5f}    {x:.5f}\n")

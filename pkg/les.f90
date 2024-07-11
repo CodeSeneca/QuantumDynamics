@@ -31,6 +31,13 @@ subroutine solve_les(b, d, psi, n)
   end do
 end subroutine solve_les
 
+!!!!! Main diagonal for THOMAS ALGORITHM
+subroutine calc_b()
+  ! Dummy variables
+  ! Local variables
+end subroutine calc_b
+
+!!!!! Right hand side vector of LES
 subroutine calc_d(V, psi, dt, dx, mass, n, d)
   implicit none
 
@@ -58,7 +65,59 @@ subroutine calc_d(V, psi, dt, dx, mass, n, d)
          & -psi(i-1)
   end do
 
+end subroutine calc_d
+
+!!!!! Calc norm of wavefunction
+subroutine calc_norm(psi, n, dx, norm_real)
+  ! Dummy variables
+  integer :: n
+  double complex, dimension(n) :: psi
+  double precision :: dx, norm_real
+
+  !f2py intent(hide) :: n
+  !f2py intent(in) :: psi, dx
+  !f2py intent(out) :: norm_real
+
+  ! Local variables
+  double complex :: norm
+  integer :: i
+
+  norm = 0.0d0
+  do i = 1, n
+    norm = norm + conjg(psi(i)) * psi(i)
+  end do
+  norm = norm*dx
+  norm = 1.0d0/sqrt(norm)
+
+  norm_real = real(norm)
+
 end subroutine
+
+!!!!! Expectation value of Epot
+subroutine calc_epot(psi, n, V, dx, epot_real)
+  implicit none
+
+  ! Dummy variables
+  integer :: n
+  double complex, dimension(n) :: psi
+  double precision, dimension(n) :: V
+  double precision :: dx, epot_real
+
+  !f2py intent(hide) :: n
+  !f2py intent(in) :: psi, V, dx
+  !f2py intent(out) :: epot_real
+
+  ! Local variables
+  double complex :: epot
+  integer :: i
+
+  epot = 0.0d0
+  do i = 1, n
+    epot = epot + conjg(psi(i)) * V(i) * psi(i) * dx
+  end do
+  epot_real = real(epot)
+
+end subroutine calc_epot
 
 !!!!! Expectation value of Ekin
 subroutine calc_ekin(psi, n, dx, m, ekin)

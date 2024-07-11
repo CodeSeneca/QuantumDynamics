@@ -9,8 +9,8 @@ import sys
 import numpy as np
 from pkg.IO import read_input, write_output
 from pkg.functions import harmonic_potential, morse_potential, gaussian
-from pkg.simulation import calc_norm, calc_b, calc_Epot
-from pkg.les import solve_les, calc_d, calc_ekin, calc_p, calc_x
+from pkg.simulation import calc_b
+from pkg.les import solve_les, calc_norm, calc_d, calc_epot, calc_ekin, calc_p, calc_x
 
 ###############################################################################
 ############################## Input parameters ###############################
@@ -51,40 +51,41 @@ Standard deviation of Gaussian sigma = {sigma}
 Particle mass = {mass}
 
 Results will be written for each {output_step}th time step
-""")
+""", end='')
 
 if output_mode == 0:
     print(f"""
 No output will be written
-""")
+""", end='')
 
 elif output_mode == 1:
     print(f"""
 Wave function and energies will be written out
-""")
+""", end='')
 
 if potential == 1:
   print(f"""
 A particle in a box will be simulated
 box heigt = {box}
-""")
+""", end='')
 
 elif potential == 2:
   print(f"""
 A harmonic potential will be simulated
 Force constant for harmonic potential = {k}
-""")
+""", end='')
 
 elif potential == 3:
   print(f"""
 A Morse potential will be simulated
 Stiffness of potential alpha = {alpha}
-""")
+""", end='')
 
 elif potential == 4:
   print(f"""
 A potential wall will be simulated
-""")
+potential wall height = {box}
+""", end='')
 
 if wavefunction == 1:
   print(f"""
@@ -103,10 +104,13 @@ particle in the box
 if output_mode != 0:
   output_name = "energy.dat"
   plot_name = "plot.dat"
+  potential_name = "potential.dat"
   output_file = open(output_name, 'w')
   plot_file = open(plot_name, 'w')
+  potential_file = open(potential_name, 'w')
   output_file.write("#Time step Norm Potential Energy Kinetic Energy " \
                 + "Total Energy momentum p location x\n")
+  potential_file.write("#Potential\n")
 
 ###############################################################################
 ###################### Initializations for t = 0 ##############################
@@ -114,13 +118,12 @@ if output_mode != 0:
 
 # Create an array with the x-values of the grid
 # The grid points are equally distributed around x0
-print(" Creating simulation grid ...", end='')
+print(" Creating simulation grid ...")
 x_values = np.linspace(x0 - 0.5*ngridpoints*dx, x0 + 0.5*ngridpoints*dx, \
 ngridpoints)
-print("done")
 
 # Create an array with the values of the potential on the grid
-print("\n Creating potential ...", end='')
+print(" Creating potential ...")
 # Particle in the box
 if potential == 1:
   v_values = np.zeros(ngridpoints)
@@ -135,11 +138,12 @@ elif potential == 3:
 # Potential wall
 elif potential == 4:
   v_values = np.zeros(ngridpoints)
-  v_values[ngridpoints//2 + 200:ngridpoints//2 + 300] = 1.0
-print("done")
+  start = int(0.70*ngridpoints)
+  end = int(0.80*ngridpoints)
+  v_values [start:end] = box
 
 # Generate start configuration of psi
-print("\n Creating initial wave function ...", end='')
+print(" Creating initial wave function ...")
 
 if wavefunction == 1:
   psi = gaussian(x_values, x0, sigma, p0)
@@ -149,17 +153,15 @@ elif wavefunction == 2:
 
 norm = calc_norm(psi, dx)
 psi *= norm
-print("done")
 
 # Write out start configuration
-# First block: Potential
 if output_mode != 0:
-  plot_file.write("#Potential\n")
-  for i in range(len(x_values)):
-    plot_file.write(f"{x_values[i]:.4f}    {v_values[i]:.5f}\n")
-  plot_file.write("\n\n")
-  # Next blocks: |Psi|^2
-  epot = calc_Epot(psi, v_values, dx)
+  # Write out potential
+  for i in range(ngridpoints):
+    potential_file.write(f"{x_values[i]:.4f}    {v_values[i]:.5f}\n")
+
+  # Write out expectation values
+  epot = calc_epot(psi, v_values, dx)
   ekin = calc_ekin(psi, dx, mass)
   etot = ekin + epot
   p = calc_p(psi)
@@ -187,7 +189,7 @@ for i in range(1, nsteps+1):
   psi *= norm
   ##### STEP 3: Calculate energies and write output for each nth step
   if output_mode != 0 and i%output_step == 0:
-    epot = calc_Epot(psi, v_values, dx)
+    epot = calc_epot(psi, v_values, dx)
     ekin = calc_ekin(psi, dx, mass)
     etot = ekin + epot
     p = calc_p(psi)
@@ -206,6 +208,7 @@ print(f"Finished in {diff:0.3f} s")
 if output_mode != 0:
   output_file.close()
   plot_file.close()
-  print("\n Written Norm, Total Energy, Kinetic Energy and Potential Energy",\
-        "to", output_name, "...")
-  print("\n Written wave function to", plot_name, "for plotting ...")
+  potential_file.close()
+  print("\n Written Potential to", potential_name, "for plotting ...")
+  print(" Written wave function to", plot_name, "for plotting ...")
+  print(" Written energies to", output_name, "...")

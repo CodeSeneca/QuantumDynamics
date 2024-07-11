@@ -2,6 +2,7 @@ Sample input file for a POTENTIAL WALL
 
 wavefunction = 1
 potential = 4
+box = 1.0
 dt = 0.005
 nsteps = 8000
 dx = 0.01

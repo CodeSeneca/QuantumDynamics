@@ -15,12 +15,6 @@ def calc_norm(psi:'complex ndarray', dx:float) -> float:
   psi_2 = np.abs(psi)**2
   norm = np.sum(psi_2*dx)
 
-  # This is the vectorized version of:
-
-  #norm = 0.0
-  #for i in range(len(psi)):
-    #norm += (psi[i].real**2 + psi[i].imag**2) * dx
-
   norm = 1/np.sqrt(norm)
 
   return norm
