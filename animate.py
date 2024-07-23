@@ -49,7 +49,7 @@ try:
   wavefunction_data = np.genfromtxt(filename, comments='#')
 except:
   print("")
-  print("Either plot.dat or energy.dat was not found ...")
+  print("Either plot.dat, energy.dat or potential.dat was not found ...")
   print("Aborting ...")
   sys.exit(3)
 end = time.time()
