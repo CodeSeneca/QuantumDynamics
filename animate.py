@@ -1,4 +1,4 @@
-#! /usr/bin/python3
+#! /mingw64/bin/python
 
 # Copyright: Maximilian Bechtel
 

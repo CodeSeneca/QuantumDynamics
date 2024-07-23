@@ -1,4 +1,4 @@
-#! /usr/bin/python3
+#! /mingw64/bin/python
 
 # Copyright: Maximilian Bechtel
 
@@ -9,8 +9,7 @@ import sys
 import numpy as np
 from pkg.IO import read_input, write_output
 from pkg.functions import harmonic_potential, morse_potential, gaussian
-from pkg.simulation import calc_b
-from pkg.les import solve_les, calc_norm, calc_d, calc_epot, calc_ekin, calc_p, calc_x
+from pkg.les import solve_les, calc_norm, calc_d, calc_epot, calc_ekin, calc_p, calc_x, calc_b
 
 ###############################################################################
 ############################## Input parameters ###############################
@@ -181,7 +180,7 @@ print("\nEntering main loop ...")
 start = time.time()
 for i in range(1, nsteps+1):
   ##### STEP 1: With current psi calculate new vector d and overwritten vector b
-  b = calc_b(v_values, ngridpoints, dx, dt, mass)
+  b = calc_b(v_values, dx, dt, mass)
   d = calc_d(v_values, psi, dt, dx, mass)
   ##### STEP 2: Solve LES with Thomas algorithm -> new psi
   psi = solve_les(b, d)

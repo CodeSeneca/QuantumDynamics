@@ -32,9 +32,26 @@ subroutine solve_les(b, d, psi, n)
 end subroutine solve_les
 
 !!!!! Main diagonal for THOMAS ALGORITHM
-subroutine calc_b()
+subroutine calc_b(V, n, dx, dt, mass, b)
   ! Dummy variables
+  integer :: n
+  double precision, dimension(n) :: V
+  double complex :: dt
+  double precision :: dx, mass
+  double complex, dimension(n) :: b
+
+  !f2py intent(hide) :: n
+  !f2py intent(in) :: V, dt, dx, mass
+  !f2py intent(out) :: b
+
   ! Local variables
+  integer :: i
+
+  do i = 1, n
+    b(i) = mass*dx**2 * ( (0.0d0, 2.0d0)/dt - V(i) ) - 1
+  end do
+  b = 2*b
+
 end subroutine calc_b
 
 !!!!! Right hand side vector of LES
