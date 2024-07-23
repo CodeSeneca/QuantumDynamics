@@ -52,7 +52,7 @@ def calc_d(V:'ndarray', psi:'complex ndarray', dt, dx, mass) -> 'ndarray':
   return d
 
 ##############################
-##### VERY SLOW IMPLEMENTATION
+##### FAST IMPLEMENTATION
 ##############################
 
 def solve_les(b, d):
@@ -80,7 +80,7 @@ def solve_les(b, d):
   return psi
 
 ################################
-##### MUCH FASTER IMPLEMENTATION
+##### VERY SLOW IMPLEMENTATION
 ################################
 
 def solve_les_thomas(a:'real', b:'complex', c:'real', d:'complex', x) -> None:
