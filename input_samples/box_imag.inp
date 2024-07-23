@@ -1,0 +1,17 @@
+Sample input file for the PARTICLE IN A BOX
+(for finding the eigenfunction by using
+negative, imaginary time steps)
+
+wavefunction = 1
+potential = 1
+box = 10
+dt = -0.005j
+nsteps = 10000
+dx = 0.01
+ngridpoints = 1000
+x0 = 0
+p0 = 1
+sigma = 1 
+mass = 1
+output_mode = 1
+output_step = 10
